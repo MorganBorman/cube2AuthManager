@@ -30,36 +30,85 @@ void read_config_buffer(AuthManager *authManager, FileBuffer *fb)
     }
 }
 
-void load_auth_information(AuthManager *authManager)
+bool load_auth_information(AuthManager *authManager)
 {
-    char autoexec_filename[512];
-    char authcfg_filename[512];
+    const char **rel_prefix;
 
-    #if defined __GNUC__
-        const char *homeDir = getenv("HOME");
-    #elif defined _WIN32
-        const char homeDir[MAX_PATH];
-        const DWORD ret = GetEnvironmentVariableA("USERPROFILE",buff,MAX_PATH);
+    int sauer_home_length;
+    char *sauer_home;
+
+    char *autoexec_filename;
+    char *authcfg_filename;
+
+    #if defined _WIN32 || defined _WIN64
+        char homeDir[MAX_PATH];
+        char progDir[MAX_PATH];
+        int ret = GetEnvironmentVariableA("USERPROFILE", homeDir, MAX_PATH);
         if (ret==0 || ret>MAX_PATH)
-            homeDir = 0;
+            return false;
+		ret = SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, 0, progDir);
+        if (ret==0 || ret>MAX_PATH)
+            return false;
+	#else
+        const char *homeDir = getenv("HOME");
+        const char *progDir = "";
     #endif
     
-    if(!homeDir) return;
+    if(!homeDir || !progDir) return false;
     
-    printf("Sauerbraten home dir = "SAUERBRATEN_HOME_PATH"\n", homeDir);
-    
-    snprintf(autoexec_filename, 512, SAUERBRATEN_HOME_PATH"autoexec.cfg", homeDir);
-    snprintf(authcfg_filename, 512, SAUERBRATEN_HOME_PATH"auth.cfg", homeDir);
+    for(unsigned int lx = 0; lx < NUMLOCATIONS; lx++) {
+        //home_locations[lx].relative_to
+        //home_locations[lx].path
 
-    readfb(&authManager->auth_cfg_buffer, authcfg_filename);    
+        if(home_locations[lx].relative_to == PROGDIR)
+            rel_prefix = &progDir;
+        else if(home_locations[lx].relative_to == HOMEDIR)
+            rel_prefix = &homeDir;
+        else
+            return false;
+
+        sauer_home_length = strlen(*rel_prefix) + strlen(FS_DELIM) + strlen(home_locations[lx].path) + 1;
+
+
+
+        sauer_home = (char *)malloc(sizeof(char)*(sauer_home_length));
+
+        snprintf(sauer_home, sauer_home_length, "%s%s%s", *rel_prefix, FS_DELIM, home_locations[lx].path);
+
+        printf("Checking for Sauerbraten home dir = '%s'\n", sauer_home);
+
+        if(directory_exists(sauer_home)) break;
+
+        free(sauer_home);
+        sauer_home = NULL;
+    }
+
+    if(!sauer_home) return false;
+
+    printf("Sauerbraten home dir = %s\n", sauer_home);
+
+    int autoexec_filename_length = sauer_home_length + strlen(FS_DELIM) + strlen("autoexec.cfg") + 1;
+    int authcfg_filename_length = sauer_home_length + strlen(FS_DELIM) + strlen("auth.cfg") + 1;
+
+    autoexec_filename = (char *)malloc(sizeof(char)*(autoexec_filename_length));
+    authcfg_filename = (char *)malloc(sizeof(char)*(authcfg_filename_length));
+
+    snprintf(autoexec_filename, autoexec_filename_length, "%s%sautoexec.cfg", sauer_home, FS_DELIM);
+    snprintf(authcfg_filename, authcfg_filename_length, "%s%sauth.cfg", sauer_home, FS_DELIM);
+
+    readfb(&authManager->auth_cfg_buffer, authcfg_filename);
     readfb(&authManager->autoexec_cfg_buffer, autoexec_filename);
     
+    free(autoexec_filename);
+    free(authcfg_filename);
+
     printf("finished reading files.\n");
     
     read_config_buffer(authManager, &authManager->auth_cfg_buffer);
     read_config_buffer(authManager, &authManager->autoexec_cfg_buffer);
     
     printf("finished reading auth keys.\n");
+    return true;
 }
 
 void write_row(AuthManager *authManager, GtkTreeIter *iter)

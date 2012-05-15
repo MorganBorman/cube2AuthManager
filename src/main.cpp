@@ -2,29 +2,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "filebuffer.h"
 #include "cube2crypto.h"
 
-#ifdef _WIN32
-    // windows (32-bit)
-    #define SAUERBRATEN_HOME_PATH "%s\\My Games\\Sauerbraten\\"
-#elif _WIN64
-    // windows (64-bit)
-    #define SAUERBRATEN_HOME_PATH "%s\\My Games\Sauerbraten\\"
-#elif __APPLE__
-    // osx
-    #define SAUERBRATEN_HOME_PATH "%s/Library/Application Support/sauerbraten/"
-#elif __linux
-    // linux
-    #define SAUERBRATEN_HOME_PATH "%s/.sauerbraten/"
-#elif __unix // all unices not caught above
-    // unix
-    #define SAUERBRATEN_HOME_PATH "%s/.sauerbraten/"
-#elif __posix
-    // posix
-    #define SAUERBRATEN_HOME_PATH "%s/.sauerbraten/"
+#if defined _WIN32 || defined _WIN64
+    #define FS_DELIM "\\"
+    #include <Windows.h>
+    #include <shlobj.h>
+#else
+    #define FS_DELIM "/"
 #endif
+
+enum{PROGDIR, HOMEDIR};
+
+typedef struct {
+    int    relative_to;
+    char   *path;
+} HomeLocation;
+
+#if defined _WIN32 || defined _WIN64
+
+/* Array of sauerbraten home directories and what they're relative to. */
+static HomeLocation home_locations[] =  {
+        {HOMEDIR, "My Games\Sauerbraten"},
+        {PROGDIR, "Sauerbraten\\"}
+};
+
+#elif __APPLE__
+
+static HomeLocation home_locations[] =  {
+        {HOMEDIR, "Library/Application Support/sauerbraten"}
+};
+
+#else
+
+static HomeLocation home_locations[] =  {
+        {HOMEDIR, ".sauerbraten"}
+};
+
+#endif
+
+#define NUMLOCATIONS sizeof(home_locations)/sizeof(HomeLocation)
+
+bool directory_exists(const char *path)
+{
+    struct stat stat_data;
+    if(stat(path, &stat_data)) return false;
+
+    if (stat_data.st_mode & S_IFDIR)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 enum
 {
@@ -71,6 +107,8 @@ typedef struct {
 typedef struct
 {
         GtkWidget		*window;
+        GtkWidget       *errordialog_nodir;
+
         GtkListStore    *key_store;
         GtkTreeView     *key_view;
         
@@ -97,9 +135,9 @@ GdkPixbuf *get_stock_icon(GtkIconTheme *icon_theme, const char *icon_name, int s
     GError		*error			= NULL;
     GdkPixbuf   *return_pixbuf  = NULL;
     
-    return_pixbuf = gtk_icon_theme_load_icon(icon_theme, icon_name, size /*px*/, (GtkIconLookupFlags)0, &error);
+    return_pixbuf = gdk_pixbuf_new_from_file_at_size(icon_name, size /*px*/, size /*px*/, &error);
     if(!return_pixbuf) {
-        g_print("Couldn't load icon: %s", error->message);
+        g_print("Couldn't load icon: %s\n", error->message);
         g_free(error);
         return NULL;
     }
@@ -147,6 +185,8 @@ int main (int argc, char *argv[])
 	authManager->key_store     	            = GTK_LIST_STORE(gtk_builder_get_object(builder, "KeyStore"));
 	authManager->key_view     	            = GTK_TREE_VIEW(gtk_builder_get_object(builder, "KeyView"));
 	
+	authManager->errordialog_nodir          = GTK_WIDGET(gtk_builder_get_object(builder, "errordialog_nodir"));
+
 	authManager->enabled_renderer     	    = GTK_CELL_RENDERER(gtk_builder_get_object(builder, "cellrenderertoggle_enabled"));
 	authManager->info_renderer     	        = GTK_CELL_RENDERER(gtk_builder_get_object(builder, "cellrendererpixbuf_info"));
 	authManager->edit_renderer     	        = GTK_CELL_RENDERER(gtk_builder_get_object(builder, "cellrendererpixbuf_edit"));
@@ -180,9 +220,9 @@ int main (int argc, char *argv[])
 	
     GtkIconTheme *icon_theme = gtk_icon_theme_get_default();
     
-    authManager->info_icon_pixbuf = get_stock_icon(icon_theme, "gtk-dialog-info");
-    authManager->edit_icon_pixbuf = get_stock_icon(icon_theme, "gtk-edit");
-    authManager->delete_icon_pixbuf = get_stock_icon(icon_theme, "gtk-delete");
+    authManager->info_icon_pixbuf = get_stock_icon(icon_theme, "Icons"FS_DELIM"200px-Gnome-dialog-information.png");
+    authManager->edit_icon_pixbuf = get_stock_icon(icon_theme, "Icons"FS_DELIM"200px-Gnome-accessories-text-editor.png");
+    authManager->delete_icon_pixbuf = get_stock_icon(icon_theme, "Icons"FS_DELIM"200px-Gnome-edit-delete.png");
     
     if(!authManager->info_icon_pixbuf || !authManager->edit_icon_pixbuf || !authManager->delete_icon_pixbuf)
     {
@@ -193,13 +233,22 @@ int main (int argc, char *argv[])
         return(1);
     }
 
-    load_auth_information(authManager);
-	
-	gtk_main();
+    if(!load_auth_information(authManager))
+    {
+        gtk_dialog_run(GTK_DIALOG(authManager->errordialog_nodir));
+    }
+    else
+    {
+        gtk_main();
+    }
 
     freefb(&authManager->auth_cfg_buffer);
     freefb(&authManager->autoexec_cfg_buffer);
     
+	if(authManager->info_icon_pixbuf) g_object_unref(authManager->info_icon_pixbuf);
+	if(authManager->edit_icon_pixbuf) g_object_unref(authManager->edit_icon_pixbuf);
+	if(authManager->delete_icon_pixbuf) g_object_unref(authManager->delete_icon_pixbuf);
+	
 	g_slice_free(AuthManager, authManager);
 	return 0;
 }

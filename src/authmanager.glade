@@ -25,14 +25,14 @@
     </columns>
   </object>
   <object class="GtkAction" id="action_close">
-    <property name="label" translatable="yes">Close</property>
-    <property name="short_label" translatable="yes">Close</property>
-    <property name="tooltip" translatable="yes">Close the authManager</property>
+    <property name="label">Close</property>
+    <property name="short_label">Close</property>
+    <property name="tooltip">Close the authManager</property>
     <property name="stock_id">gtk-close</property>
   </object>
   <object class="GtkAction" id="action_new">
-    <property name="label" translatable="yes">New</property>
-    <property name="tooltip" translatable="yes">Add a new auth key</property>
+    <property name="label">New</property>
+    <property name="tooltip">Add a new auth key</property>
     <property name="stock_id">gtk-add</property>
   </object>
   <object class="GtkWindow" id="editdialog_window">
@@ -195,6 +195,47 @@
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkMessageDialog" id="errordialog_nodir">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Fatal error</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="skip_taskbar_hint">True</property>
+    <property name="message_type">error</property>
+    <property name="buttons">close</property>
+    <property name="text" translatable="yes">authManager could not locate the sauerbraten configuration directory. Will now exit.</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>
@@ -430,6 +471,7 @@
                 <property name="label" translatable="yes">Close</property>
                 <property name="use_underline">True</property>
                 <signal name="clicked" handler="gtk_main_quit" swapped="no"/>
+                <signal name="clicked" handler="gtk_false" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -451,7 +493,7 @@
             <signal name="button-press-event" handler="on_KeyView_button_press_event" swapped="no"/>
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn_enabled">
-                <property name="title" translatable="yes">Enabled</property>
+                <property name="title">Enabled</property>
                 <child>
                   <object class="GtkCellRendererToggle" id="cellrenderertoggle_enabled"/>
                   <attributes>
@@ -463,7 +505,7 @@
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn_authname">
                 <property name="resizable">True</property>
-                <property name="title" translatable="yes">Auth Name</property>
+                <property name="title">Auth Name</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
                   <attributes>
@@ -475,7 +517,7 @@
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn_privkey">
                 <property name="resizable">True</property>
-                <property name="title" translatable="yes">Private Key</property>
+                <property name="title">Private Key</property>
                 <property name="expand">True</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
@@ -488,7 +530,7 @@
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn_domain">
                 <property name="resizable">True</property>
-                <property name="title" translatable="yes">Domain</property>
+                <property name="title">Domain</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext3"/>
                   <attributes>
@@ -499,7 +541,7 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn_actions">
-                <property name="title" translatable="yes">Actions</property>
+                <property name="title">Actions</property>
                 <child>
                   <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf_info"/>
                   <attributes>

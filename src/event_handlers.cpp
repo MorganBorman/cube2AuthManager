@@ -1,23 +1,23 @@
 extern "C"
 {
-	void on_newdialog_entry_changed(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_newdialog_entry_changed(GtkObject *object, AuthManager *authManager)
 	{
 	    
         
 	}
     
-	void on_editdialog_entry_changed(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_editdialog_entry_changed(GtkObject *object, AuthManager *authManager)
 	{
 	    
         
 	}
 	
-	void on_infodialog_button_ok_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_infodialog_button_ok_clicked(GtkObject *object, AuthManager *authManager)
 	{
         gtk_widget_hide(authManager->infodialog.window);
 	}
 	
-	void on_editdialog_button_update_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_editdialog_button_update_clicked(GtkObject *object, AuthManager *authManager)
 	{
 	    gtk_widget_hide(authManager->editdialog.window);
 	    
@@ -35,12 +35,12 @@ extern "C"
         write_row(authManager, &iter);
 	}
 	
-	void on_editdialog_button_cancel_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_editdialog_button_cancel_clicked(GtkObject *object, AuthManager *authManager)
 	{
         gtk_widget_hide(authManager->editdialog.window);
 	}
 
-	void on_toolbutton_new_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_toolbutton_new_clicked(GtkObject *object, AuthManager *authManager)
 	{
 	    gtk_entry_set_text(authManager->newdialog.entry_authname, "");
 	    gtk_entry_set_text(authManager->newdialog.entry_privkey, "");
@@ -48,7 +48,7 @@ extern "C"
         gtk_widget_show(authManager->newdialog.window);
 	}
 	
-	void on_newdialog_button_add_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_newdialog_button_add_clicked(GtkObject *object, AuthManager *authManager)
 	{
         gtk_widget_hide(authManager->newdialog.window);
         create_row(authManager, gtk_entry_get_text(authManager->newdialog.entry_authname), 
@@ -56,12 +56,12 @@ extern "C"
                                 gtk_entry_get_text(authManager->newdialog.entry_domain));
 	}
 	
-	void on_newdialog_button_cancel_clicked(GtkObject *object, AuthManager *authManager)
+	G_MODULE_EXPORT void on_newdialog_button_cancel_clicked(GtkObject *object, AuthManager *authManager)
 	{
         gtk_widget_hide(authManager->newdialog.window);
 	}
 	
-    void on_newdialog_clipboard_received(GtkClipboard *clipboard, const char *text_data, AuthManager *authManager)
+    G_MODULE_EXPORT void on_newdialog_clipboard_received(GtkClipboard *clipboard, const char *text_data, AuthManager *authManager)
 	{
         char    authname[512];
         char    privkey[51];
@@ -86,13 +86,13 @@ extern "C"
         }
 	}
 	
-    void on_newdialog_button_fromclip_clicked(GtkObject *object, AuthManager *authManager)
+    G_MODULE_EXPORT void on_newdialog_button_fromclip_clicked(GtkObject *object, AuthManager *authManager)
 	{
 	    GtkClipboard *clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 	    gtk_clipboard_request_text(clipboard, (GtkClipboardTextReceivedFunc)on_newdialog_clipboard_received, authManager);
 	}
 	
-    bool on_KeyView_button_press_event(GtkObject *object, GdkEventButton  *event, AuthManager *authManager)
+    G_MODULE_EXPORT bool on_KeyView_button_press_event(GtkObject *object, GdkEventButton  *event, AuthManager *authManager)
     {
         GtkCellRenderer *renderer = NULL;
         GtkTreeIter iter;

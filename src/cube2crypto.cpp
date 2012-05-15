@@ -16,7 +16,7 @@ extern "C"
 {
 	char *cube2crypto_hashstring(const char *str, int hashlen)
 	{
-		char *hash = (char*)malloc(sizeof(char[hashlen+1]));
+		char *hash = (char*)malloc(sizeof(char)*(hashlen+1));
 		if(!crypto::hashstring(str, hash, hashlen)) *hash = '\0';
 		return hash;
 	}
