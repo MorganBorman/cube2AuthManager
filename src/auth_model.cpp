@@ -23,6 +23,7 @@ void read_config_buffer(AuthManager *authManager, FileBuffer *fb)
     int lx;
     for(lx = 0; lx < fb->line_count; lx++)
     {
+		printf("Reading line %d of file %s\n", lx, fb->filename);
         if(read_auth_line(&auth, fb->lines[lx]))
         {
             add_row(authManager, auth.enabled, auth.authname, auth.privkey, auth.domain, fb, lx);

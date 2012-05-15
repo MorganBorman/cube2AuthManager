@@ -25,35 +25,22 @@ void readfb(FileBuffer *fb, const char *filename)
     while (1) {
         prev_char = curr_char;
         curr_char = next_char;
-        if(curr_char == EOF) break;
-        next_char = fgetc(fp);
+        if(curr_char != EOF) next_char = fgetc(fp);
         
         //If we found a line terminator
-        if((curr_char == '\n' && prev_char != '\r') || (curr_char == '\r' && next_char != '\n') || (curr_char == '\r' && next_char == '\n'))
-        {
-            int terminator_size = 1;
-            if (curr_char == '\r' && next_char == '\n') terminator_size = 2;
-            if (terminator_size == 2 && next_char != EOF) next_char = fgetc(fp);
-            line_count++;
-        }
-    }
-    
-    while (1) {
-        prev_char = curr_char;
-        curr_char = next_char;
-        if(curr_char == EOF) break;
-        next_char = fgetc(fp);
-        
-        //If we found a line terminator
-        if((curr_char == '\n' && prev_char != '\r') || (curr_char == '\r' && next_char != '\n') || (curr_char == '\r' && next_char == '\n'))
+        if((curr_char == '\n' && prev_char != '\r') || (curr_char == '\r' && next_char != '\n') || (curr_char == '\r' && next_char == '\n') || (curr_char == EOF))
         {
             line_count++;
         }
+		
+		if(curr_char == EOF) break;
     }
+	
+	printf("Found %ld lines in file %s.\n", line_count, fb->filename);
     
     fseek(fp, 0, SEEK_SET);
     
-    fb->lines = (char**)malloc(sizeof(char *)*(line_count+1));
+    fb->lines = (char**)malloc(sizeof(char *)*(line_count));
     fb->line_count = line_count;
     
     line_count = 0;
@@ -64,15 +51,16 @@ void readfb(FileBuffer *fb, const char *filename)
     start_pos = ftell(fp);
     next_char = fgetc(fp);
     
-    while (line_count < fb->line_count) {
+    while (1) {
         prev_char = curr_char;
         curr_char = next_char;
-        if(curr_char == EOF) break;
-        next_char = fgetc(fp);
+        if(curr_char != EOF) next_char = fgetc(fp);
         
         //If we found a line terminator
-        if((curr_char == '\n' && prev_char != '\r') || (curr_char == '\r' && next_char != '\n') || (curr_char == '\r' && next_char == '\n'))
+        if((curr_char == '\n' && prev_char != '\r') || (curr_char == '\r' && next_char != '\n') || (curr_char == '\r' && next_char == '\n') || (curr_char == EOF))
         {
+			if(curr_char == EOF) line_length--;
+		
             //Declare space for the line
             fb->lines[line_count] = (char *)malloc(sizeof(char)*(line_length+1));
             
@@ -84,9 +72,10 @@ void readfb(FileBuffer *fb, const char *filename)
             //return to the front of the line
             fseek(fp, start_pos, SEEK_SET);
             
+			printf("Read line of %d characters from %s.\n", line_length, fb->filename);
+			
             //Read and terminate the line
             fread(fb->lines[line_count], sizeof(char), line_length, fp);
-            
             fb->lines[line_count][line_length] = '\0';
             
             if(WINDINGS)
@@ -103,6 +92,8 @@ void readfb(FileBuffer *fb, const char *filename)
             
         }
         else line_length++;
+		
+		if(curr_char == EOF) break;
         
         if(!line_length) start_pos = ftell(fp) - 1;
     }
@@ -119,6 +110,8 @@ void writefb(FileBuffer *fb)
     {
         if(!fb->lines[lx]) continue;
         
+		printf("Writing line to file %s: '%s'\n", fb->filename, fb->lines[lx]);
+		
         fprintf(fp, "%s\n", fb->lines[lx]);
     }
     
