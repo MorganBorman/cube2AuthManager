@@ -39,53 +39,72 @@ bool load_auth_information(AuthManager *authManager)
 
     char *autoexec_filename;
     char *authcfg_filename;
+	
+	char *homeDir;
+	char *progDir;
 
     #if defined _WIN32 || defined _WIN64
-        char homeDir[MAX_PATH];
-        char progDir[MAX_PATH];
-        int ret = GetEnvironmentVariableA("USERPROFILE", homeDir, MAX_PATH);
-        if (ret==0 || ret>MAX_PATH)
-            return false;
+		int ret = GetEnvironmentVariableA("USERPROFILE", NULL, NULL);
+		homeDir = (char *)malloc(sizeof(char)*ret);
+        ret = GetEnvironmentVariableA("USERPROFILE", homeDir, ret);
+		
+		progDir = (char *)malloc(sizeof(char)*MAX_PATH);
 		ret = SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, 0, progDir);
-        if (ret==0 || ret>MAX_PATH)
-            return false;
+        if(ret) return false;
 	#else
-        const char *homeDir = getenv("HOME");
-        const char *progDir = "";
+        homeDir = getenv("HOME");
+        progDir = "";
     #endif
     
-    if(!homeDir || !progDir) return false;
+    if(!homeDir || !progDir) 
+	{
+		#if defined _WIN32 || defined _WIN64
+			free(homeDir);
+			free(progDir);
+		#endif
+		return false;
+	}
     
     for(unsigned int lx = 0; lx < NUMLOCATIONS; lx++) {
         //home_locations[lx].relative_to
         //home_locations[lx].path
 
         if(home_locations[lx].relative_to == PROGDIR)
-            rel_prefix = &progDir;
+            rel_prefix = (const char **)&progDir;
         else if(home_locations[lx].relative_to == HOMEDIR)
-            rel_prefix = &homeDir;
+            rel_prefix = (const char **)&homeDir;
         else
+		{
+			#if defined _WIN32 || defined _WIN64
+				free(homeDir);
+				free(progDir);
+			#endif
+			printf("Error in home locations. Unknown relative designation.\n");
             return false;
+		}
 
         sauer_home_length = strlen(*rel_prefix) + strlen(FS_DELIM) + strlen(home_locations[lx].path) + 1;
-
-
 
         sauer_home = (char *)malloc(sizeof(char)*(sauer_home_length));
 
         snprintf(sauer_home, sauer_home_length, "%s%s%s", *rel_prefix, FS_DELIM, home_locations[lx].path);
 
-        printf("Checking for Sauerbraten home dir = '%s'\n", sauer_home);
+        printf("Checking for Sauerbraten home dir: '%s'\n", sauer_home);
 
         if(directory_exists(sauer_home)) break;
 
         free(sauer_home);
         sauer_home = NULL;
     }
+	
+	#if defined _WIN32 || defined _WIN64
+		free(homeDir);
+		free(progDir);
+	#endif
 
     if(!sauer_home) return false;
 
-    printf("Sauerbraten home dir = %s\n", sauer_home);
+    printf("Found Sauerbraten home dir: '%s'\n", sauer_home);
 
     int autoexec_filename_length = sauer_home_length + strlen(FS_DELIM) + strlen("autoexec.cfg") + 1;
     int authcfg_filename_length = sauer_home_length + strlen(FS_DELIM) + strlen("auth.cfg") + 1;

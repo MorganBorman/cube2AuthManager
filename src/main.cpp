@@ -27,8 +27,8 @@ typedef struct {
 
 /* Array of sauerbraten home directories and what they're relative to. */
 static HomeLocation home_locations[] =  {
-        {HOMEDIR, "My Games\Sauerbraten"},
-        {PROGDIR, "Sauerbraten\\"}
+        {HOMEDIR, "My Games\\Sauerbraten"},
+        {PROGDIR, "Sauerbraten"}
 };
 
 #elif __APPLE__
