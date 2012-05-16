@@ -1,10 +1,9 @@
-enum {WIN_LINES = 0, OSX_LINES, NIX_LINES};
+#include <string>
+#include <vector>
 
 typedef struct {
     char *filename;
-    int line_endings;
-    int line_count;
-    char **lines;
+    std::vector<std::string> lines;
 } FileBuffer;
 
 void readfb(FileBuffer *fb, const char *filename);

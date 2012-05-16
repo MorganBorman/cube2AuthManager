@@ -20,14 +20,14 @@ bool read_auth_line(AuthData *auth, const char *line)
 void read_config_buffer(AuthManager *authManager, FileBuffer *fb)
 {
     AuthData auth;
-    int lx;
-    for(lx = 0; lx < fb->line_count; lx++)
+    int lx = 0;
+    for(std::vector<std::string>::iterator it = fb->lines.begin(); it != fb->lines.end(); ++it)
     {
-		printf("Reading line %d of file %s\n", lx, fb->filename);
-        if(read_auth_line(&auth, fb->lines[lx]))
+        if(read_auth_line(&auth, (*it).c_str()))
         {
             add_row(authManager, auth.enabled, auth.authname, auth.privkey, auth.domain, fb, lx);
         }
+        lx++;
     }
 }
 
@@ -149,15 +149,16 @@ void write_row(AuthManager *authManager, GtkTreeIter *iter)
                                                                     COL_CONFIG_LINE, &line_index,
                                                                     -1);
     
-    if(fb->lines[line_index]) free(fb->lines[line_index]);
-    
     int line_length = (enabled ? strlen("authkey ") : strlen("//authkey ")) + strlen(authname) + strlen(privkey) + strlen(domain) + 2 + 1;
-    fb->lines[line_index] = (char *)malloc(sizeof(char)*line_length);
+    char *temp = (char *)malloc(sizeof(char)*line_length);
     if(enabled)
-        snprintf(fb->lines[line_index], line_length, "authkey %s %s %s", authname, privkey, domain);
+        snprintf(temp, line_length, "authkey %s %s %s", authname, privkey, domain);
     else
-        snprintf(fb->lines[line_index], line_length, "//authkey %s %s %s", authname, privkey, domain);
-        
+        snprintf(temp, line_length, "//authkey %s %s %s", authname, privkey, domain);
+
+    fb->lines.at(line_index) = std::string(temp);
+
+    free(temp);
     free(authname);
     free(privkey);
     free(domain);
@@ -177,8 +178,7 @@ void delete_row(AuthManager *authManager, GtkTreeIter *iter)
     
     gtk_list_store_remove(GTK_LIST_STORE(authManager->key_store), iter);
     
-    free(fb->lines[line_index]);
-    fb->lines[line_index] = NULL;
+    fb->lines.at(line_index) = std::string("");
     
     writefb(fb);
 }
@@ -186,16 +186,6 @@ void delete_row(AuthManager *authManager, GtkTreeIter *iter)
 void create_row(AuthManager *authManager, const char *authname, const char *privkey, const char *domain)
 {
     FileBuffer  *fb = &authManager->auth_cfg_buffer;
-    char       **lines_temp = NULL;
-    
-    lines_temp = (char **)realloc(fb->lines, sizeof(char *)*(fb->line_count+2));
-    
-    if(!lines_temp) return;
-    
-    fb->lines = lines_temp;
-    fb->line_count++;
-    
-    fb->lines[fb->line_count] = NULL;
     
 	static GtkTreeIter current_entry;
 	gtk_list_store_append(authManager->key_store, &current_entry);
@@ -208,12 +198,17 @@ void create_row(AuthManager *authManager, const char *authname, const char *priv
 	                                                    COL_ACTION_EDIT, authManager->edit_icon_pixbuf, 
 	                                                    COL_ACTION_DELETE, authManager->delete_icon_pixbuf, 
 	                                                    COL_CONFIG_BUFFER, (gpointer)fb, 
-	                                                    COL_CONFIG_LINE, fb->line_count-1, -1);
+	                                                    COL_CONFIG_LINE, fb->lines.size(), -1);
 	                                                    
+
     int line_length = strlen("authkey ") + strlen(authname) + strlen(privkey) + strlen(domain) + 2 + 1;
-    fb->lines[fb->line_count-1] = (char *)malloc(sizeof(char)*line_length);
-    snprintf(fb->lines[fb->line_count-1], line_length, "authkey %s %s %s", authname, privkey, domain);
+    char *temp = (char *)malloc(sizeof(char)*line_length);
+    snprintf(temp, line_length, "authkey %s %s %s", authname, privkey, domain);
     
+    fb->lines.push_back(std::string(temp));
+
+    free(temp);
+
     writefb(fb);
 }
 
