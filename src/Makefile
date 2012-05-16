@@ -10,9 +10,10 @@ filebuffer.o: filebuffer.cpp filebuffer.h
 cube2crypto.o: cube2crypto.cpp shared/crypto.cpp shared/tools.h
 	g++ -c -Wall -g -o $@ $<
 
-w32dist: authmanager
+w32distrib: authmanager authmanager.glade
 	cp authmanager w32dist/
 	cp -r Icons w32dist/
+	cp authmanager.glade w32dist/
 
 clean:
 	rm -rf *.o authmanager
