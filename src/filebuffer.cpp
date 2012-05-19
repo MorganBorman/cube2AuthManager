@@ -35,5 +35,6 @@ void writefb(FileBuffer *fb)
 
 void freefb(FileBuffer *fb)
 {
+    fb->lines.clear();
     free(fb->filename);
 }
