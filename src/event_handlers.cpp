@@ -91,8 +91,20 @@ G_MODULE_EXPORT void on_toolbutton_opendir_clicked(GtkObject *object,
 	
 
 	#else
-
 	
+	GError *error = NULL;
+
+	int temp_size = strlen("file://") + strlen(authManager->sauer_home);
+
+	char *uri_sauer_home = (char *)malloc(sizeof(char)*(temp_size+2));
+
+	snprintf(uri_sauer_home, temp_size+1, "file://%s", authManager->sauer_home);
+
+	if(!gtk_show_uri(NULL, uri_sauer_home, GDK_CURRENT_TIME, &error)) {
+	    g_print(error->message);
+	}
+
+	free(uri_sauer_home);
 
 	#endif
 }
