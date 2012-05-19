@@ -21,6 +21,9 @@ G_MODULE_EXPORT void on_file_changed(GFileMonitor *monitor, GFile *file,
         g_object_unref(authManager->auth_cfg_monitor);
     if (authManager->autoexec_cfg_monitor)
         g_object_unref(authManager->autoexec_cfg_monitor);
+		
+	if (authManager->sauer_home)
+		free(authManager->sauer_home);
 
     if (!load_auth_information(authManager)) {
         gtk_dialog_run(GTK_DIALOG(authManager->errordialog_nodir));
@@ -74,6 +77,24 @@ G_MODULE_EXPORT void on_toolbutton_new_clicked(GtkObject *object,
     gtk_entry_set_text(authManager->newdialog.entry_privkey, "");
     gtk_entry_set_text(authManager->newdialog.entry_domain, "");
     gtk_widget_show(authManager->newdialog.window);
+}
+
+G_MODULE_EXPORT void on_toolbutton_opendir_clicked(GtkObject *object,
+        AuthManager *authManager) {
+		
+	#if defined _WIN32 || defined _WIN64
+	
+	ShellExecute(NULL, "open", authManager->sauer_home, NULL, NULL, SW_SHOWDEFAULT);
+	
+	#elif __APPLE__
+
+	
+
+	#else
+
+	
+
+	#endif
 }
 
 G_MODULE_EXPORT void on_newdialog_button_add_clicked(GtkObject *object,

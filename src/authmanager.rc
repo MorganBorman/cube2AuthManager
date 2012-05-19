@@ -1,0 +1,25 @@
+1 ICON "w32dist\\Icons\\Gnome-dialog-password.ico"
+2 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  0,7,0,1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", ""
+      VALUE "FileDescription", "Auth Manager"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "authmanager"
+      VALUE "LegalCopyright", "Morgan Borman"
+      VALUE "OriginalFilename", "authmanager.exe"
+      VALUE "ProductName", "Auth Manager"
+      VALUE "ProductVersion", "0.701"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END

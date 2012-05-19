@@ -45,7 +45,7 @@ bool load_auth_information(AuthManager *authManager)
 	char *progDir;
 
     #if defined _WIN32 || defined _WIN64
-		int ret = GetEnvironmentVariableA("USERPROFILE", NULL, NULL);
+		int ret = GetEnvironmentVariableA("USERPROFILE", NULL, 0);
 		homeDir = (char *)malloc(sizeof(char)*ret);
         ret = GetEnvironmentVariableA("USERPROFILE", homeDir, ret);
 		
@@ -130,6 +130,8 @@ bool load_auth_information(AuthManager *authManager)
     
     free(autoexec_filename);
     free(authcfg_filename);
+	
+	authManager->sauer_home = sauer_home;
 
     printf("finished reading files.\n");
     

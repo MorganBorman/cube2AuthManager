@@ -11,6 +11,8 @@
 #if defined _WIN32 || defined _WIN64
 #define FS_DELIM "\\"
 #include <Windows.h>
+#include <Shellapi.h>
+#include <Shlwapi.h>
 #include <shlobj.h>
 #else
 #define FS_DELIM "/"
@@ -120,6 +122,8 @@ typedef struct {
     EditDialog editdialog;
     InfoDialog infodialog;
 
+	char  *sauer_home;
+	
     GFile *auth_cfg_file;
     GFile *autoexec_cfg_file;
 
@@ -286,6 +290,9 @@ int main(int argc, char *argv[]) {
     if (authManager->autoexec_cfg_monitor)
         g_object_unref(authManager->autoexec_cfg_monitor);
 
+	if (authManager->sauer_home)
+		free(authManager->sauer_home);
+		
     if (authManager->info_icon_pixbuf)
         g_object_unref(authManager->info_icon_pixbuf);
     if (authManager->edit_icon_pixbuf)
