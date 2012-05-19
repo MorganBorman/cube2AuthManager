@@ -22,8 +22,8 @@ cube2crypto.o: cube2crypto.cpp shared/crypto.cpp shared/tools.h
 
 w32distrib: authmanager authmanager.glade
 	cp authmanager w32dist/
-	cp -r Icons w32dist/
 	cp authmanager.glade w32dist/
+	cmd //c "start w32dist\\package.bat"
 	
 ${RESOURCE_FILE}: authmanager.rc w32dist/Icons/Gnome-dialog-password.ico
 	windres $< -O coff -o $@
