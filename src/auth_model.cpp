@@ -54,7 +54,7 @@ bool load_auth_information(AuthManager *authManager)
         if(ret) return false;
 	#else
         homeDir = getenv("HOME");
-        progDir = "";
+        progDir = (char *)"";
     #endif
     
     if(!homeDir || !progDir) 
@@ -115,6 +115,15 @@ bool load_auth_information(AuthManager *authManager)
 
     snprintf(autoexec_filename, autoexec_filename_length, "%s%sautoexec.cfg", sauer_home, FS_DELIM);
     snprintf(authcfg_filename, authcfg_filename_length, "%s%sauth.cfg", sauer_home, FS_DELIM);
+
+    authManager->auth_cfg_file = g_file_new_for_path(authcfg_filename);
+    authManager->autoexec_cfg_file = g_file_new_for_path(autoexec_filename);
+
+    authManager->auth_cfg_monitor = g_file_monitor_file(authManager->auth_cfg_file, G_FILE_MONITOR_NONE, NULL, NULL);
+    authManager->autoexec_cfg_monitor = g_file_monitor_file(authManager->autoexec_cfg_file, G_FILE_MONITOR_NONE, NULL, NULL);
+
+    g_signal_connect(authManager->auth_cfg_monitor, "changed", (GCallback)on_file_changed, authManager);
+    g_signal_connect(authManager->autoexec_cfg_monitor, "changed", (GCallback)on_file_changed, authManager);
 
     readfb(&authManager->auth_cfg_buffer, authcfg_filename);
     readfb(&authManager->autoexec_cfg_buffer, autoexec_filename);
